@@ -5,7 +5,7 @@
 # Compiled to requirements-embedder.txt by scripts/lock_lambda_deps.sh.
 boto3>=1.35
 fastembed>=0.5
-lancedb>=0.18
+lancedb>=0.41.0
 pyarrow>=18.0
 numpy>=1.26
 tokenizers>=0.20

@@ -4,7 +4,7 @@
 # also normalizes text; boto3 to read chunk JSONs from S3).
 # Compiled to requirements-embedder.txt by scripts/lock_lambda_deps.sh.
 boto3>=1.35
-fastembed>=0.5
+fastembed>=0.9.1
 lancedb>=0.18
 pyarrow>=18.0
 numpy>=1.26

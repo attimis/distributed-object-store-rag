@@ -6,9 +6,9 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.13.0
     # via httpx
-boto3==1.43.4
-    # via -r lambda/requirements-embedder.in
-botocore==1.43.4
+boto3==1.43.125
+    # via -r requirements-embedder.in
+botocore==1.43.126
     # via
     #   boto3
     #   s3transfer
@@ -24,7 +24,7 @@ click==8.3.3
 deprecation==2.1.0
     # via lancedb
 fastembed==0.8.0
-    # via -r lambda/requirements-embedder.in
+    # via -r requirements-embedder.in
 filelock==3.29.0
     # via huggingface-hub
 flatbuffers==25.12.19
@@ -57,7 +57,7 @@ lance-namespace==0.7.6
 lance-namespace-urllib3-client==0.7.6
     # via lance-namespace
 lancedb==0.30.2
-    # via -r lambda/requirements-embedder.in
+    # via -r requirements-embedder.in
 loguru==0.7.3
     # via fastembed
 markdown-it-py==4.0.0
@@ -68,12 +68,14 @@ mmh3==5.2.1
     # via fastembed
 numpy==2.4.4
     # via
-    #   -r lambda/requirements-embedder.in
+    #   -r requirements-embedder.in
     #   fastembed
     #   lancedb
     #   onnxruntime
 onnxruntime==1.25.1
     # via fastembed
+overrides==7.7.0
+    # via lancedb
 packaging==26.2
     # via
     #   deprecation
@@ -88,7 +90,7 @@ py-rust-stemmers==0.1.5
     # via fastembed
 pyarrow==24.0.0
     # via
-    #   -r lambda/requirements-embedder.in
+    #   -r requirements-embedder.in
     #   lancedb
 pydantic==2.13.3
     # via
@@ -108,7 +110,7 @@ requests==2.33.1
     # via fastembed
 rich==15.0.0
     # via typer
-s3transfer==0.17.0
+s3transfer==0.19.3
     # via boto3
 shellingham==1.5.4
     # via typer
@@ -116,7 +118,7 @@ six==1.17.0
     # via python-dateutil
 tokenizers==0.23.1
     # via
-    #   -r lambda/requirements-embedder.in
+    #   -r requirements-embedder.in
     #   fastembed
 tqdm==4.67.3
     # via

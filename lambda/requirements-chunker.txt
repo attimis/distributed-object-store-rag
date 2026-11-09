@@ -58,7 +58,7 @@ shellingham==1.5.4
     # via typer
 six==1.17.0
     # via python-dateutil
-tokenizers==0.23.1
+tokenizers==0.23.3
     # via -r lambda/requirements-chunker.in
 tqdm==4.67.3
     # via huggingface-hub

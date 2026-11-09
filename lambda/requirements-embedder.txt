@@ -25,7 +25,7 @@ deprecation==2.1.0
     # via lancedb
 fastembed==0.8.0
     # via -r lambda/requirements-embedder.in
-filelock==3.29.0
+filelock==4.2.1
     # via huggingface-hub
 flatbuffers==25.12.19
     # via onnxruntime

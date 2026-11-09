@@ -4,9 +4,9 @@ annotated-doc==0.0.4
     # via typer
 anyio==4.13.0
     # via httpx
-boto3==1.43.4
-    # via -r lambda/requirements-chunker.in
-botocore==1.43.4
+boto3==1.43.125
+    # via -r requirements-chunker.in
+botocore==1.43.126
     # via
     #   boto3
     #   s3transfer
@@ -52,14 +52,14 @@ pyyaml==6.0.3
     # via huggingface-hub
 rich==15.0.0
     # via typer
-s3transfer==0.17.0
+s3transfer==0.19.3
     # via boto3
 shellingham==1.5.4
     # via typer
 six==1.17.0
     # via python-dateutil
 tokenizers==0.23.1
-    # via -r lambda/requirements-chunker.in
+    # via -r requirements-chunker.in
 tqdm==4.67.3
     # via huggingface-hub
 typer==0.25.1

@@ -3,7 +3,7 @@
 # pyarrow/numpy as their transitives expect, tokenizers because the embedder
 # also normalizes text; boto3 to read chunk JSONs from S3).
 # Compiled to requirements-embedder.txt by scripts/lock_lambda_deps.sh.
-boto3>=1.35
+boto3>=1.43.125
 fastembed>=0.5
 lancedb>=0.18
 pyarrow>=18.0

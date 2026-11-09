@@ -1,0 +1,232 @@
+# =============================================================================
+# variables.example.yml — deployment config for the OneBucket RAG demo
+# =============================================================================
+#
+# Copy this file to variables.yml (same folder; variables.yml is gitignored)
+# and replace every <placeholder>. The demo runbook, scripts/demo_setup.py,
+# docs/demo_runbook/metrics.py and the MCP server's get_runbook_config /
+# set_runbook_variable / validate_runbook_config tools all read it. Loading
+# stops with a clear error while any <placeholder> is still present.
+#
+# Sections:
+#   1. onebucket.*         endpoints you connect to (global hostnames by default)
+#   2. endpoints.*         the backing storage providers behind your OneBuckets
+#   3. policies.*          your OneBuckets: peers, modes, quorum, backing buckets
+#   4. pipeline.*          which OneBucket each pipeline stage writes to
+#   5. daemon.*            local paths and execution mode
+#   6. classifier_outcomes vocabulary the event consumer writes to the event log
+#   7. operator_intent.*   what THIS demo run does: tickers, question, pricing
+#
+# Sections 1-6 mirror what you configured in the OneBucket console at
+# https://app.onebucket.io; editing them here does not change the console.
+# Section 7 is yours to edit freely between runs.
+# =============================================================================
+
+schema_version: 1
+
+# -----------------------------------------------------------------------------
+# 1. OneBucket endpoints
+#
+# The global hostnames route each request to the nearest live region and are
+# the right default. To pin a region use s3|events|data.<region>.onebucket.io;
+# the current region list is at https://www.onebucket.io/support. Keep these
+# identical to the values in your shell / Claude Desktop config (README,
+# "Connectors and endpoints").
+# -----------------------------------------------------------------------------
+onebucket:
+  s3_endpoint: "https://s3.onebucket.io"
+  events_url: "https://events.onebucket.io"
+  data_url: "https://data.onebucket.io"
+  # Label only; appears in log lines. Never put keys or tokens in this file.
+  organization: "<your-org-name>"
+
+# -----------------------------------------------------------------------------
+# 2. Endpoint definitions, one per backing provider, keyed by the alias you
+#    gave it in the console (Endpoints tab).
+#
+# use_region_toggle mirrors the console's "Use region" switch. Set it to
+# true when the provider URL is GLOBAL (no region in the hostname, e.g. AWS
+# S3) and false when the URL already names a region (e.g. Wasabi). Getting
+# this wrong produces 503s on writes while reads keep working.
+#
+# direct_access is only needed on endpoints used as CACHE peers that you
+# want to purge during the demo (purge_peer_cache / demo-setup --purge-cache):
+# a local AWS CLI profile and endpoint URL that reach the backing bucket
+# directly, bypassing OneBucket. Omit it on sync-only endpoints.
+# -----------------------------------------------------------------------------
+endpoints:
+  EAST_S3:
+    url: "https://s3.amazonaws.com:443"
+    provider: "aws"
+    use_region_toggle: true
+    direct_access:
+      profile: "<aws-cli-profile-for-the-backing-bucket>"
+      endpoint_url:            # null = the provider's default endpoint
+
+  WEST_WASABI:
+    url: "https://s3.us-west-1.wasabisys.com:443"
+    provider: "wasabi"
+    use_region_toggle: false
+    direct_access:
+      profile: "<aws-cli-profile-for-the-wasabi-sub-user>"
+      endpoint_url: "https://s3.us-west-1.wasabisys.com"
+
+# -----------------------------------------------------------------------------
+# 3. Policies: your OneBuckets and their peers.
+#
+# Peer modes (console wording in parentheses):
+#   sync  (Synchronous)  the write lands on this peer before the request
+#                        returns; counts toward the quorum
+#   async (Asynchronous) acknowledged first, copied in the background
+#   cache (Cache)        holds copies of what has been read or prefetched so
+#                        repeat reads are served locally; the source stays
+#                        authoritative
+#
+# quorum = how many sync peers with write permission must acknowledge a PUT.
+# required: true forces every write to succeed on that peer regardless of
+# quorum; the console clamps quorum to at least the number of required peers,
+# and the loader refuses a file where quorum < count(required).
+#
+# Name your OneBuckets as you like and use the providers you have; the
+# names below are examples and the pipeline reads whatever you put here.
+# The ONE requirement: keep the index in its own OneBucket that replicates
+# eagerly (every peer sync + required, quorum = peer count), separate from
+# the data OneBucket whose extra peers fill lazily on read (cache). That
+# split is what the demo measures.
+#
+#   demo-data  raw/ + chunks/: one sync peer holds the canonical copy,
+#              cache peers elsewhere fill with what is read
+#   demo-meta  the LanceDB index: all peers sync, written everywhere at once
+#   demo-west  OPTIONAL mirror of demo-data with the roles reversed, for the
+#              "read from the other side" segment; delete it if you have
+#              one provider
+# -----------------------------------------------------------------------------
+policies:
+  demo-data:
+    quorum: 1
+    peers:
+      - alias: EAST_S3
+        type: sync
+        required: true
+        bucket: "<your-aws-bucket-for-raw-and-chunks>"
+        region: us-east-1
+      - alias: WEST_WASABI
+        type: cache
+        required: false
+        bucket: "<your-wasabi-bucket-for-raw-and-chunks>"
+        region: us-west-1
+
+  demo-west:
+    quorum: 1
+    peers:
+      - alias: WEST_WASABI
+        type: sync
+        required: true
+        bucket: "<your-wasabi-bucket-for-raw-and-chunks>"
+        region: us-west-1
+      - alias: EAST_S3
+        type: cache
+        required: false
+        bucket: "<your-aws-bucket-for-raw-and-chunks>"
+        region: us-east-1
+
+  demo-meta:
+    quorum: 2
+    peers:
+      - alias: EAST_S3
+        type: sync
+        required: true
+        bucket: "<your-aws-bucket-for-metadata>"
+        region: us-east-1
+      - alias: WEST_WASABI
+        type: sync
+        required: true
+        bucket: "<your-wasabi-bucket-for-metadata>"
+        region: us-west-1
+
+# -----------------------------------------------------------------------------
+# 4. Pipeline routing: which OneBucket each stage writes to, and the key
+#    layout the code uses (fixed by the pipeline; do not change).
+# -----------------------------------------------------------------------------
+pipeline:
+  raw_writes_to_policy: demo-data
+  chunks_writes_to_policy: demo-data
+  metadata_writes_to_policy: demo-meta
+  raw_key_prefix: "raw/"
+  chunks_key_prefix: "chunks/{raw_file_id}/"
+  manifest_key_template: "chunks/{raw_file_id}/MANIFEST.json"
+  chunk_file_template: "chunks/{raw_file_id}/chunk_{nnnn}.txt"
+  metadata_key_prefix: "metadata/global_index.lance/"
+
+# -----------------------------------------------------------------------------
+# 5. Local consumer: paths and execution mode.
+#
+# Relative paths resolve against the repository root so the files are visible
+# to any process with the repo mounted (including a sandboxed agent).
+# -----------------------------------------------------------------------------
+daemon:
+  mode: "onebucket-events"          # onebucket-events | local-daemon | lambda
+  heartbeat_path: "/tmp/oneb-pipeline-daemon.heartbeat"
+  event_log_path: ".runbook-state/events.jsonl"
+  cursor_path: ".runbook-state/events.cursor"
+  snapshots_path: ".runbook-state/snapshots/"
+  # AWS CLI profile holding your OneBucket S3 access key. Precedence at
+  # runtime: $AWS_PROFILE in the shell, then this value.
+  aws_profile: "<aws-cli-profile-with-your-onebucket-access-key>"
+
+# -----------------------------------------------------------------------------
+# 6. dispatch_outcome vocabulary written by the event consumer
+#    (src/onebucket_demo/event_consumer.py). Keep in step with the code; the
+#    metrics script references these as literals.
+# -----------------------------------------------------------------------------
+classifier_outcomes:
+  - dispatch_chunker      # the ONLY outcome that triggers downstream work
+  - skip_not_put          # GetObject / List* and so on, most of the stream
+  - skip_non_success      # PutObject with status != 200
+  - skip_wrong_bucket     # PutObject on a OneBucket outside the pipeline's scope
+  - skip_backend_layer    # per-peer echo of a request; kept for telemetry
+  - skip_manifest_write   # the pipeline's own MANIFEST.json commit
+  - skip_chunk_write      # the pipeline's own chunk files
+  - skip_other            # anything else under the watched OneBucket
+  - skip_invalid          # failed validation; never reaches the pipeline
+
+# =============================================================================
+# 7. Operator intent: what this demo run does. Edit freely.
+# =============================================================================
+operator_intent:
+  # Documents to ingest before the demo (SEC tickers; ingest_document fetches
+  # the latest 10-K for each).
+  seed_corpus_tickers:
+    - AAPL
+    - MSFT
+    - GOOG
+    - XOM
+    - CVX
+  # Ingested live during the demo; must NOT be in the seed corpus.
+  fresh_ticker_for_live_ingest: NVDA
+  # How the setup script recognises a ticker's document in the index: the
+  # filename ingest_document writes is "<ticker>-10k-<filing-date>.txt".
+  document_id_pattern: "{ticker}-10k-"
+  # The question that drives the multi-hop search; keep it company-agnostic
+  # so the freshly ingested filing joins the answer when it is re-asked.
+  multi_hop_demo_question: "What regulatory and compliance risks do major tech companies cite for their cloud businesses?"
+  # Cache peers used only in optional addendum segments; listed by endpoint
+  # alias so --purge-cache can clean them between dry runs.
+  addendum_cache_peers: []
+
+  # Pricing assumptions for the cost projection; replace with your contract rates.
+  pricing:
+    aws_egress_usd_per_gb: 0.09
+    cross_region_egress_usd_per_gb: 0.05
+    wasabi_storage_usd_per_tb_month: 5.99
+    aws_storage_usd_per_tb_month: 23.0
+
+  # Workload assumptions for the year-one projection (see
+  # docs/demo_runbook/research/findings_summary.md for the sources).
+  workload:
+    y1_read_fraction: 0.30
+    y1_read_fraction_low: 0.20
+    y1_read_fraction_high: 0.40
+    y1_query_count: 10000000
+    chunks_per_query: 3
+    chunk_overlap_ratio: 0.15

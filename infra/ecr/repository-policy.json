@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LambdaECRImageRetrievalPolicy",
+      "Effect": "Allow",
+      "Principal": { "Service": "lambda.amazonaws.com" },
+      "Action": [
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
+      ],
+      "Condition": {
+        "StringLike": {
+          "aws:sourceArn": "arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:${LAMBDA_PREFIX}-*"
+        }
+      }
+    }
+  ]
+}

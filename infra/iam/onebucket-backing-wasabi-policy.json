@@ -1,0 +1,35 @@
+{
+  "_comment": "Inline policy for the Wasabi sub-user that OneBucket uses to reach your Wasabi backing buckets. Same shape as the AWS policy minus s3:GetObjectAttributes, which Wasabi's IAM rejects. Substitute ${RAW_CHUNKS_BUCKET} and ${METADATA_BUCKET} before applying.",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3ObjectActions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:PutObjectAcl",
+        "s3:GetObjectAcl"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${RAW_CHUNKS_BUCKET}/raw/*",
+        "arn:aws:s3:::${RAW_CHUNKS_BUCKET}/chunks/*",
+        "arn:aws:s3:::${METADATA_BUCKET}/metadata/*"
+      ]
+    },
+    {
+      "Sid": "S3BucketActions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${RAW_CHUNKS_BUCKET}",
+        "arn:aws:s3:::${METADATA_BUCKET}"
+      ]
+    }
+  ]
+}

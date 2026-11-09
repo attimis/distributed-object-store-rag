@@ -1,0 +1,9 @@
+{"is_truncated":true,"objects":[
+{"key":"chunks/c8baed899633f438/MANIFEST.json","locations":["EAST_S3"],"size":264},
+{"key":"chunks/c8baed899633f438/chunk_0000.txt","locations":["EAST_S3"],"size":37691},
+{"key":"chunks/c8baed899633f438/chunk_0001.txt","locations":["EAST_S3","WEST_WASABI"],"size":1208},
+{"key":"chunks/c8baed899633f438/chunk_0002.txt","locations":["EAST_S3","WEST_WASABI"],"size":1511},
+{"key":"chunks/c8baed899633f438/chunk_0003.txt","locations":["EAST_S3","WEST_WASABI"],"size":1918},
+{"key":"chunks/c8baed899633f438/chunk_0004.txt","locations":["EAST_S3"],"size":1246},
+{"key":"chunks/c8baed899633f438/chunk_0005.txt","locations":["EAST_S3"],"size":2165}
+]}

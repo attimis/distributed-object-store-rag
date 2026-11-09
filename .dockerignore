@@ -1,0 +1,16 @@
+# Docker build context for the two Lambda images (lambda/*.Dockerfile).
+#
+# Deny by default: the Dockerfiles COPY only the project package and the
+# locked requirements, so nothing else in the repository should ever reach
+# the Docker daemon. This keeps .git, the virtualenv, test data, local
+# runbook state and any operator configuration out of the context and out
+# of the image, and makes builds fast.
+*
+!src/onebucket_demo/
+!pyproject.toml
+!uv.lock
+!lambda/requirements-chunker.txt
+!lambda/requirements-embedder.txt
+# Never ship bytecode caches even inside the allowed tree.
+**/__pycache__/
+**/*.pyc

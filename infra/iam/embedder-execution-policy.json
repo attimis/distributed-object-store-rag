@@ -1,0 +1,51 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadChunkObjectsAndManifests",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectAttributes"
+      ],
+      "Resource": "arn:aws:s3:::${BUCKET}/chunks/*"
+    },
+    {
+      "Sid": "ManageMetadataObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::${BUCKET}/metadata/*"
+    },
+    {
+      "Sid": "ListBucketScoped",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${BUCKET}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["chunks/*", "metadata/*"]
+        }
+      }
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT_ID}:log-group:/aws/lambda/${LAMBDA_PREFIX}-embedder:*"
+    },
+    {
+      "Sid": "DeadLetterQueue",
+      "Effect": "Allow",
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${LAMBDA_PREFIX}-embedder-dlq"
+    }
+  ]
+}

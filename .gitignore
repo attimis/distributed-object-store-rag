@@ -1,0 +1,192 @@
+# >>> agent-workflow-template: agentic scaffolding (local only, not project source) >>>
+# Agent workflow scaffolding + its working docs: present locally, never published.
+/CLAUDE.md
+/CLAUDE.devteam.md
+/GEMINI.md
+/AGENTS.md
+/setup.sh
+/.claude/
+/.agents/
+/.skills/
+/.cto/
+/.cto-path
+/.cto-path.example
+/.review-engine
+/.review-engine-fallback
+/scripts/agentic/
+/scripts/cto/
+/docs/personas/
+/docs/sprints/
+/docs/roadmap/
+/docs/backlog/
+/docs/ideation/
+/docs/initiatives/
+/docs/memos/
+/docs/architecture/decisions/_templates/
+/tmp/
+.DS_Store
+/docs/architecture/proposals/*-review*
+/docs/architecture/proposals/*.err
+/docs/deploy/HANDOFF-*.md
+# <<< agent-workflow-template: end <<<
+
+# CTO session state — local filesystem paths, gitignored per machine
+.cto/projects.yaml
+.cto-path
+
+# Agent workflow — private domain context (sensitive project knowledge)
+docs/personas/context/*.md
+!docs/personas/context/README.md
+
+# Project concerns are committed (they're project-level facts, not secrets)
+# docs/personas/concerns/*.md is tracked
+
+# Templates are always committed
+!docs/initiatives/_templates/**
+!docs/sprints/_templates/**
+!docs/backlog/bugs/bug-report-template.md
+
+# macOS
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Linux
+*~
+.fuse_hidden*
+.nfs*
+
+# Editors / IDEs
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+.project
+.classpath
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+secrets.yaml
+secrets.yml
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+.venv/
+venv/
+env/
+ENV/
+
+# Node / JS / TS
+node_modules/
+.npm
+.yarn/
+.pnp.*
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# Rust
+target/
+Cargo.lock
+
+# Go
+vendor/
+
+# Java / JVM
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+bin/
+
+# Database / data dumps
+*.sqlite
+*.sqlite3
+*.db
+
+# Misc
+tmp/
+temp/
+.tmp/
+
+# OneBucket Demo — Sprint 01 generated artifacts
+data/metadata/
+data/chunks/
+*.lance/
+.fastembed_cache/
+
+# Runtime state — event log, snapshots, etc. — written by the daemon/event consumer
+.runbook-state/
+.claude/current-session.id
+.claude/CRASHED
+.claude/COMPLETE
+.claude/pending-prompt.md
+.claude/used-prompts/
+.claude/session.log
+.claude/terminal-window.id
+
+# OneBucket demo: per-deployment config and local runtime state (never published)
+docs/demo_runbook/variables.yml
+.runbook-state/
+*.token
+token.json
+*.cursor

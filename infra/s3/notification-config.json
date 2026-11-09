@@ -1,0 +1,30 @@
+{
+  "_comment": "S3 bucket notification config wiring chunker (raw/*) and embedder (chunks/MANIFEST.json suffix). Substitute ${REGION}, ${ACCOUNT_ID}, ${LAMBDA_PREFIX} at deploy time.",
+  "LambdaFunctionConfigurations": [
+    {
+      "Id": "ChunkerOnRawCreated",
+      "LambdaFunctionArn": "arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:${LAMBDA_PREFIX}-chunker",
+      "Events": ["s3:ObjectCreated:*"],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            { "Name": "prefix", "Value": "raw/" }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "EmbedderOnManifestCreated",
+      "LambdaFunctionArn": "arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:${LAMBDA_PREFIX}-embedder",
+      "Events": ["s3:ObjectCreated:*"],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            { "Name": "prefix", "Value": "chunks/" },
+            { "Name": "suffix", "Value": "MANIFEST.json" }
+          ]
+        }
+      }
+    }
+  ]
+}

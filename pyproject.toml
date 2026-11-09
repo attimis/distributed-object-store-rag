@@ -1,0 +1,78 @@
+[project]
+name = "onebucket-demo"
+version = "0.1.0"
+description = "Teachable RAG pipeline on OneBucket: chunking, hybrid embeddings, LanceDB and an MCP search server, with local, event-driven and AWS Lambda execution modes"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = "MIT"
+authors = [
+    { name = "Attimis" },
+]
+
+dependencies = [
+    "lancedb>=0.18",
+    "pyarrow>=18.0",
+    "fastembed>=0.5",
+    "mcp>=1.0",
+    "numpy>=1.26",
+    "boto3>=1.35",
+    # Phase-2 MCP tools (ingest_document) — fetch from SEC EDGAR + HTML→text.
+    # httpx ships transitively via mcp/fastembed; declared here explicitly because
+    # mcp_tools.py imports it directly. html2text is new — small (~200 KB).
+    "httpx>=0.27",
+    "html2text>=2024.2",
+    # variables.yml (docs/demo_runbook/) is heavily commented operator-facing
+    # config; ruamel.yaml round-trips it without losing the comments when the
+    # agent calls set_runbook_variable() to update fields.
+    "ruamel.yaml>=0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/attimis/distributed-object-store-rag"
+Repository = "https://github.com/attimis/distributed-object-store-rag"
+Issues = "https://github.com/attimis/distributed-object-store-rag/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "moto[s3,sqs,iam,lambda]>=5.0",
+    "ruff>=0.6",
+]
+# Demo analytics (docs/demo_runbook/metrics.py) query the event log with DuckDB.
+demo = [
+    "duckdb>=1.0",
+]
+
+# Lambda image runtime dep sets are NOT defined here as optional-dependencies —
+# `uv pip compile pyproject.toml --extra X` would include [project.dependencies]
+# (lancedb/fastembed/mcp), which the chunker image must NOT contain. Instead,
+# the dep sets are kept as standalone input files at lambda/requirements-*.in
+# and compiled by scripts/lock_lambda_deps.sh into lambda/requirements-*.txt.
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/onebucket_demo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "models: loads the embedding models (first run downloads ~630 MB from the Hugging Face Hub)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "ARG"]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest fixtures are requested by name for their side effects
+"tests/*" = ["ARG001", "ARG002"]
+# scripts put src/ on sys.path before importing the package
+"scripts/*" = ["E402"]

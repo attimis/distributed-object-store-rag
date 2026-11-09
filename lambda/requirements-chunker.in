@@ -1,0 +1,6 @@
+# Chunker Lambda image runtime deps — input for uv pip compile.
+# Scope: only what onebucket_demo.lambda_handler_chunker needs at runtime.
+# Deliberately omits fastembed / lancedb / pyarrow / numpy / mcp.
+# Compiled to requirements-chunker.txt by scripts/lock_lambda_deps.sh.
+boto3>=1.35
+tokenizers>=0.20

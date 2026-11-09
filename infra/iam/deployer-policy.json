@@ -1,0 +1,112 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "STSWhoAmI",
+      "Effect": "Allow",
+      "Action": "sts:GetCallerIdentity",
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3Bucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketNotification",
+        "s3:GetBucketNotification",
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::onebucket-*"
+    },
+    {
+      "Sid": "S3Object",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::onebucket-*/*"
+    },
+    {
+      "Sid": "SQSDLQs",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:CreateQueue",
+        "sqs:GetQueueUrl",
+        "sqs:GetQueueAttributes",
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage"
+      ],
+      "Resource": "arn:aws:sqs:*:*:onebucket-*"
+    },
+    {
+      "Sid": "ECRAuthAccountWide",
+      "Effect": "Allow",
+      "Action": "ecr:GetAuthorizationToken",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ECRRepoOps",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:DescribeRepositories",
+        "ecr:DescribeImages",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:GetRepositoryPolicy",
+        "ecr:SetRepositoryPolicy",
+        "ecr:GetLifecyclePolicy",
+        "ecr:PutLifecyclePolicy"
+      ],
+      "Resource": "arn:aws:ecr:*:*:repository/onebucket-*"
+    },
+    {
+      "Sid": "IAMRolesForLambda",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:GetRole",
+        "iam:PutRolePolicy",
+        "iam:GetRolePolicy",
+        "iam:PassRole"
+      ],
+      "Resource": "arn:aws:iam::*:role/onebucket-*"
+    },
+    {
+      "Sid": "LambdaFunctions",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:CreateFunction",
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:InvokeFunction",
+        "lambda:AddPermission",
+        "lambda:GetPolicy"
+      ],
+      "Resource": "arn:aws:lambda:*:*:function:onebucket-*"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:CreateLogGroup",
+        "logs:PutRetentionPolicy"
+      ],
+      "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/onebucket-*:*"
+    }
+  ]
+}

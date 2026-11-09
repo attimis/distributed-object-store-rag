@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneBucket RAG — Lazy Tiering Demo Visual (2026-05-28 live run)</title>
+<style>
+  :root {
+    --bg:        #0e1014;
+    --panel:     #161922;
+    --ink:       #e8ebf0;
+    --ink-dim:   #8b93a4;
+    --ink-faint: #5b6273;
+    --warm:      #1D9E75;
+    --warm-glow: rgba(29,158,117,0.45);
+    --cold:      #262b38;
+    --line:      #2b303d;
+    --accent:    #4ea1ff;
+    --bar-a:     #E24B4A;
+    --bar-b:     #BA7517;
+    --bar-c:     #1D9E75;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 40px 56px; }
+
+  /* KPI strip */
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 36px; }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .kpi-label { font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .kpi-val { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; }
+  .kpi-val.green { color: var(--warm); }
+  .kpi-val.accent { color: var(--accent); }
+  .kpi-sub { font-size: 12px; color: var(--ink-dim); margin-top: 4px; }
+
+  /* section headers */
+  .section-head { font-size: 13px; font-weight: 600; color: var(--ink-dim);
+    text-transform: uppercase; letter-spacing: 0.07em; margin: 0 0 14px; }
+
+  /* chunk grid section */
+  .grid-section { margin-bottom: 40px; }
+  .legend { display: flex; gap: 22px; align-items: center;
+    font-size: 13px; color: var(--ink-dim); margin-bottom: 24px; }
+  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px;
+    vertical-align: -1px; margin-right: 6px; }
+  .swatch.warm { background: var(--warm); }
+  .swatch.cold { background: var(--cold); border: 1px solid #3a3f50; }
+  .swatch.fresh { background: #1a1e28; border: 1px solid #2e3344; }
+
+  .doc { margin-bottom: 24px; }
+  .doc-head { display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 12px; }
+  .doc-name { font-size: 15px; font-weight: 600; }
+  .doc-name .tag { font-size: 11px; font-weight: 400; color: var(--ink-faint); margin-left: 8px; }
+  .doc-stat { font-size: 12px; color: var(--ink-dim); text-align: right; }
+  .doc-stat b { color: var(--warm); }
+
+  .chunk-grid { display: grid; grid-template-columns: repeat(44, 1fr); gap: 2px; }
+  .tile { width: 100%; aspect-ratio: 1/1; border-radius: 1px; background: var(--cold); }
+  .tile.warm { background: var(--warm); box-shadow: 0 0 4px var(--warm-glow); }
+  .tile.fresh { background: #1a1e28; }
+
+  /* cost bar chart */
+  .cost-section { margin-bottom: 40px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .bar-label { font-size: 13px; color: var(--ink-dim); width: 260px; flex-shrink: 0; line-height: 1.4; }
+  .bar-label strong { color: var(--ink); }
+  .bar-wrap { flex: 1; background: var(--cold); border-radius: 4px; height: 28px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center;
+    padding-left: 10px; font-size: 13px; font-weight: 650; color: #fff; white-space: nowrap; }
+  .bar-fill.a { background: var(--bar-a); }
+  .bar-fill.b { background: var(--bar-b); }
+  .bar-fill.c { background: var(--bar-c); }
+
+  /* closing */
+  .arch-line { margin-top: 36px; padding: 20px 24px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .arch-line p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--ink-dim); }
+  .arch-line p b { color: var(--ink); }
+  .tagline { margin-top: 28px; text-align: center; font-size: 19px; font-weight: 600; }
+  .tagline span { color: var(--warm); }
+  .foot { margin-top: 22px; text-align: center; font-size: 11px; color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-label">Corpus egress avoided</div>
+      <div class="kpi-val green">99.4%</div>
+      <div class="kpi-sub">2,717 of 2,733 chunks never crossed to West</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">MSFT touched / total</div>
+      <div class="kpi-val accent">4.3%</div>
+      <div class="kpi-sub">9 of 211 chunks warm (Phase 0 pre-warm + Acts 1B, 2.5)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">NVDA upload → searchable</div>
+      <div class="kpi-val green">4 min 3 s</div>
+      <div class="kpi-sub">242.6 s · EAST_S3 ack median 432 ms · single laptop CPU</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Warm vs cold read</div>
+      <div class="kpi-val accent">~90 ms</div>
+      <div class="kpi-sub">vs ~470 ms cold — 5× speedup</div>
+    </div>
+  </div>
+
+  <!-- Chunk warming map -->
+  <div class="grid-section">
+    <div class="section-head">Chunk warming map — after Acts 1–2.5</div>
+    <div class="legend">
+      <span><span class="swatch warm"></span>Warm — S3 + Wasabi cache peer</span>
+      <span><span class="swatch cold"></span>Cold — East S3 only</span>
+      <span><span class="swatch fresh"></span>Fresh ingest — never queried</span>
+    </div>
+    <div id="docs"></div>
+  </div>
+
+  <!-- Cost bar chart -->
+  <div class="cost-section">
+    <div class="section-head">1 PB corpus — year-1 cost on 2nd site</div>
+
+    <div class="bar-row">
+      <div class="bar-label"><strong>A. Eager replication</strong><br>Object storage ×2 regions, full copy at ingest</div>
+      <div class="bar-wrap">
+        <div class="bar-fill a" style="width:100%">~$1.10 M / yr</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="bar-label"><strong>B. VectorDB-stores-chunks</strong><br>Elasticsearch / Pinecone / Weaviate — chunks in attached DB storage + idle compute</div>
+      <div class="bar-wrap">
+        <div class="bar-fill b" style="width:100%">~$1.74 M / yr</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="bar-label"><strong>C. Lazy-tier — OneBucket</strong><br>Index strict-sync; chunks tier on read; pay only for what's queried</div>
+      <div class="bar-wrap">
+        <div class="bar-fill c" style="width:3.3%">~$57 K Y1</div>
+      </div>
+    </div>
+    <div style="font-size:12px; color:var(--ink-faint); margin-top:6px; padding-left:272px;">
+      Assumptions: 1 PB raw, 30% Y1 read fraction, $0.09/GB egress, $5.99/TB-mo Wasabi, ~$100/TB-mo managed VectorDB, 10M queries/yr
+    </div>
+  </div>
+
+  <!-- Arch tradeoff line -->
+  <div class="arch-line">
+    <p>Pay <b>$1 M/yr</b> to eagerly replicate every byte that might be read. Pay <b>$1.6 M/yr</b> to put your chunks in a vector database — where most RAG actually lives today. Or pay <b>$25 K/yr steady state</b> to replicate only the bytes that were actually read, letting the workload itself shape the second copy.</p>
+  </div>
+
+  <p class="tagline">You pay to move what you <span>read</span>. Everything else stays where it is.</p>
+
+  <p class="foot">OneBucket RAG Tiering Demo &middot; live run 2026-05-28 &middot; 9 seed docs (2,531 chunks) + NVDA live ingest (242.6 s upload→searchable, 202 chunks) &middot; 16 chunks warm across MSFT + GOOG + NVDA (of 2,733 total) &middot; warm/cold latency: ~90 ms / ~470 ms (5×) &middot; steady-state cost @ 1 PB: ~$25 K/yr</p>
+</div>
+
+<script>
+const docs = [
+  {
+    name: "MSFT 10-K",
+    tag: "Microsoft FY2025 — most-queried doc · Phase 0 pre-warm + Acts 1B, 2.5",
+    total: 211,
+    warm: [31, 32, 41, 44, 47, 49, 52, 56, 72],
+    stat: "9 of 211 warm",
+    pct: "4.3% moved",
+    inv: "95.7% stayed on East S3",
+    fresh: false
+  },
+  {
+    name: "GOOG 10-K",
+    tag: "Alphabet FY2026 — cloud-regulatory + AI-data sections (Acts 1B, 2.5)",
+    total: 223,
+    warm: [30, 31, 52, 64],
+    stat: "4 of 223 warm",
+    pct: "1.8% moved",
+    inv: "98.2% stayed on East S3",
+    fresh: false
+  },
+  {
+    name: "NVDA 10-K",
+    tag: "NVIDIA FY2026 — live ingest Act 0 · 242.6 s upload→searchable · first reads via West in Act 2.5",
+    total: 202,
+    warm: [22, 39, 44],
+    stat: "3 of 202 warm",
+    pct: "1.5% moved",
+    inv: "98.5% — ingested live during demo, tiering lazily on first reads",
+    fresh: false
+  }
+];
+
+const host = document.getElementById("docs");
+for (const d of docs) {
+  const ws = new Set(d.warm);
+  const div = document.createElement("div");
+  div.className = "doc";
+  div.innerHTML =
+    '<div class="doc-head">' +
+      '<div class="doc-name">' + d.name + '<span class="tag">' + d.tag + '</span></div>' +
+      '<div class="doc-stat">' + d.stat + ' &nbsp;·&nbsp; <b>' + d.pct + '</b> &nbsp;·&nbsp; ' + d.inv + '</div>' +
+    '</div>';
+  const grid = document.createElement("div");
+  grid.className = "chunk-grid";
+  for (let i = 0; i < d.total; i++) {
+    const t = document.createElement("div");
+    t.className = "tile" + (d.fresh ? " fresh" : ws.has(i) ? " warm" : "");
+    t.title = "chunk_" + String(i).padStart(4,"0") +
+      (d.fresh ? " — ingesting (never queried)" : ws.has(i) ? " — warm (S3 + Wasabi)" : " — cold (S3 only)");
+    grid.appendChild(t);
+  }
+  div.appendChild(grid);
+  host.appendChild(div);
+}
+</script>
+</body>
+</html>

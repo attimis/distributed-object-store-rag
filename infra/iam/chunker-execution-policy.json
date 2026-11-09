@@ -1,0 +1,50 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadRawObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectAttributes"
+      ],
+      "Resource": "arn:aws:s3:::${BUCKET}/raw/*"
+    },
+    {
+      "Sid": "WriteChunkObjectsAndManifest",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::${BUCKET}/chunks/*"
+    },
+    {
+      "Sid": "ListBucketScoped",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${BUCKET}",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["raw/*", "chunks/*"]
+        }
+      }
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT_ID}:log-group:/aws/lambda/${LAMBDA_PREFIX}-chunker:*"
+    },
+    {
+      "Sid": "DeadLetterQueue",
+      "Effect": "Allow",
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:${REGION}:${ACCOUNT_ID}:${LAMBDA_PREFIX}-chunker-dlq"
+    }
+  ]
+}

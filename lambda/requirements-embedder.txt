@@ -66,7 +66,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mmh3==5.2.1
     # via fastembed
-numpy==2.4.4
+numpy==2.4.6
     # via
     #   -r lambda/requirements-embedder.in
     #   fastembed

@@ -3,4 +3,4 @@
 # Deliberately omits fastembed / lancedb / pyarrow / numpy / mcp.
 # Compiled to requirements-chunker.txt by scripts/lock_lambda_deps.sh.
 boto3>=1.35
-tokenizers>=0.20
+tokenizers>=0.23.3

@@ -5,7 +5,7 @@ annotated-doc==0.0.4
 anyio==4.13.0
     # via httpx
 boto3==1.43.4
-    # via -r lambda/requirements-chunker.in
+    # via -r requirements-chunker.in
 botocore==1.43.4
     # via
     #   boto3
@@ -58,8 +58,8 @@ shellingham==1.5.4
     # via typer
 six==1.17.0
     # via python-dateutil
-tokenizers==0.23.1
-    # via -r lambda/requirements-chunker.in
+tokenizers==0.23.3
+    # via -r requirements-chunker.in
 tqdm==4.67.3
     # via huggingface-hub
 typer==0.25.1

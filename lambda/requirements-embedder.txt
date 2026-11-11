@@ -23,7 +23,7 @@ click==8.3.3
     # via typer
 deprecation==2.1.0
     # via lancedb
-fastembed==0.8.0
+fastembed==0.9.1
     # via -r lambda/requirements-embedder.in
 filelock==3.29.0
     # via huggingface-hub
@@ -80,7 +80,7 @@ packaging==26.2
     #   huggingface-hub
     #   lancedb
     #   onnxruntime
-pillow==12.2.0
+pillow==13.0.0
     # via fastembed
 protobuf==7.34.1
     # via onnxruntime
